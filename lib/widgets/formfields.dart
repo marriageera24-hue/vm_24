@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vm_24/firebase_msg.dart';
 import 'package:vm_24/view/desired_partner.dart';
 import 'package:vm_24/view/forgot_pass.dart';
 import 'package:vm_24/view/login.dart';
@@ -550,7 +551,8 @@ void _performAction(BuildContext context, String title) async {
         'bg': Profile.myActivity['bg'],
         'drinking': rbValues['drinking'],
         'smoking': rbValues['smoking'],
-        'food': rbValues['food']
+        'food': rbValues['food'],
+        'fcmToken': FirebaseMsg.token
       };
       data = {
         'uuid': uuid,

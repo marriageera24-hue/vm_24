@@ -169,39 +169,39 @@ class NotificationViewState extends State<NotificationView> {
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             // sets the background color of the `BottomNavigationBar`
-            canvasColor: Colors.teal,
+            canvasColor: Color.fromARGB(255, 239, 191, 4),
             // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-            primaryColor: Colors.amber[800],
+            primaryColor: Colors.white,
             textTheme: Theme.of(context).textTheme.copyWith(
                 bodySmall: const TextStyle(
                     color: Colors
                         .white))), // sets the inactive color of the `BottomNavigationBar`
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          items: const <BottomNavigationBarItem>[
+          items: const <BottomNavigationBarItem> [
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: "Notifications",
+              icon: Icon(Icons.notifications, color:Color.fromARGB(255,46,111,64), size:30.0),
+              label: "Notification",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: "Shortlisted\nProfiles",
+              icon: Icon(Icons.favorite, color:Color.fromARGB(255, 204, 46, 46), size:30.0),
+              label: "Shortlisted",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.call, color:Colors.blue, size:40.0),
-              label: "Call US",
+              icon: Icon(Icons.call, color:Colors.blue, size:30.0),
+              label: "Call us",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.supervisor_account),
-              label: "Desired\nParrtner",
+              icon: Icon(Icons.supervisor_account, color:Colors.white, size:30.0),
+              label: "Matches",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle),
+              icon: Icon(Icons.account_circle, color:Colors.black, size:30.0),
               label: "My Profile",
             )
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.amber[800],
+          selectedItemColor: Colors.white,
           onTap: _onItemTapped,
         ),
       ),

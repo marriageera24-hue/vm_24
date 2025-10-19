@@ -17,7 +17,7 @@ class ProfileView extends StatefulWidget {
   ProfileView({super.key, this.title = ''});
   final String title;
   static bool selfView = false;
-  static Color _iconColor = Colors.grey;
+  static bool isVisited = false;
   static Map <dynamic, dynamic> wallet = {};
   @override
   State<StatefulWidget> createState() {
@@ -35,7 +35,8 @@ class _ProfileViewState extends State<ProfileView> {
     // TODO: implement initState
     super.initState();
     ProfileView.selfView = true;
-    ProfileView._iconColor = Colors.grey;
+    ProfileView.isVisited = false;
+    if(PartnerView.userInterest == 'visited') ProfileView.isVisited = true;
     ProfileView.wallet = {};
   }
 
@@ -113,24 +114,21 @@ class _ProfileViewState extends State<ProfileView> {
                     ? IconButton(
                         icon: Icon(Icons.favorite),
                         iconSize: 35,
-                        color: PartnerView.userInterest == 'interested'
-                            ? Colors.red
-                            : ProfileView._iconColor,
+                        color: ProfileView.isVisited
+                            ? Colors.grey
+                            : Colors.red,
                         onPressed: () {
                           setState(() {
-                            ProfileView._iconColor == Colors.red
-                                ? ProfileView._iconColor = Colors.grey
-                                : ProfileView._iconColor = Colors.red;
-                            if (PartnerView.userInterest == 'interested') {
-                              ProfileView._iconColor = Colors.grey;
-                              type = 'visited';
-                            } else {
-                              type = 'interested';
+                            if(ProfileView.isVisited){
+                              ProfileView.isVisited = false;  
+                            }
+                            else{
+                              ProfileView.isVisited = true;
                             }
 
                             ProfileAction(
                                 context, PartnerView.partnerList['uuid'],
-                                type: type);
+                                type: ProfileView.isVisited ? 'visited' : 'interested');
                           });
                         },
                       )
@@ -214,12 +212,13 @@ class _ProfileViewState extends State<ProfileView> {
           if (data.connectionState == ConnectionState.done) {
             resList = jsonDecode(data.data);
             Profile.resList = resList;
-            patchDeviceInfo(resList['other_info']);
+            
             if (!ProfileView.selfView) {
               resList = PartnerView.partnerList;
-              resList['user_wallet'] = {};
+              // resList['user_wallet'] = {};
             }else{
-              ProfileView.wallet = resList['user_wallet'][0];
+              patchDeviceInfo(resList['other_info']);
+              // ProfileView.wallet = resList['user_wallet'][0];
             }
             
 
@@ -255,9 +254,25 @@ class _ProfileViewState extends State<ProfileView> {
                                 ),
                               ],
                             ),
+                            ProfileView.selfView ? 
+                            Column(children: <Widget>[
+                              _deleteButton(),
+                            ]) : 
+                            Column(children: <Widget>[]),
+                            
+                            const Column(
+                              children: [
+                                SizedBox(
+                                  width: 10,
+                                ),
+                              ],
+                            ),
+
+                            ProfileView.selfView ? 
                             Column(children: <Widget>[
                               _logoutButton(),
-                            ]),
+                            ]) : 
+                            Column(children: <Widget>[]), 
                           ]),
                           //width: 100,
                           Image.asset(
@@ -370,6 +385,7 @@ class _ProfileViewState extends State<ProfileView> {
                 children: <Widget>[
                   //Positioned(top: 40, left: 0, child: _backButton()),
                   Container(
+                    // color: Colors.white,
                     height: height,
                     padding: const EdgeInsets.all(36.0),
                     child: SingleChildScrollView(
@@ -397,9 +413,12 @@ class _ProfileViewState extends State<ProfileView> {
                                 ),
                               ],
                             ),
+                             ProfileView.selfView ? 
                             Column(children: <Widget>[
                               _deleteButton(),
-                            ]),
+                            ]) : 
+                            Column(children: <Widget>[]),
+                            
                             const Column(
                               children: [
                                 SizedBox(
@@ -407,12 +426,13 @@ class _ProfileViewState extends State<ProfileView> {
                                 ),
                               ],
                             ),
+
+                            ProfileView.selfView ? 
                             Column(children: <Widget>[
                               _logoutButton(),
-                            ]),
+                            ]) : 
+                            Column(children: <Widget>[]), 
                           ]),
-
-                          
                           CircleAvatar(
                               radius: 55,
                               backgroundColor: Colors.white,
@@ -1285,9 +1305,9 @@ class _ProfileViewState extends State<ProfileView> {
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             // sets the background color of the `BottomNavigationBar`
-            canvasColor: Colors.teal,
+            canvasColor: Color.fromARGB(255, 239, 191, 4),
             // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-            primaryColor: Colors.amber[800],
+            primaryColor: Colors.white,
             textTheme: Theme.of(context).textTheme.copyWith(
                 bodySmall: const TextStyle(
                     color: Colors
@@ -1296,28 +1316,28 @@ class _ProfileViewState extends State<ProfileView> {
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem> [
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: "Notifications",
+              icon: Icon(Icons.notifications, color:Color.fromARGB(255,46,111,64), size:30.0),
+              label: "Notification",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: "Shortlisted\nProfiles",
+              icon: Icon(Icons.favorite, color:Color.fromARGB(255, 204, 46, 46), size:30.0),
+              label: "Shortlisted",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.call, color:Colors.blue, size:40.0),
-              label: "Call US",
+              icon: Icon(Icons.call, color:Colors.blue, size:30.0),
+              label: "Call us",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.supervisor_account),
-              label: "Desired\nParrtner",
+              icon: Icon(Icons.supervisor_account, color:Colors.white, size:30.0),
+              label: "Matches",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle),
+              icon: Icon(Icons.account_circle, color:Colors.black, size:30.0),
               label: "My Profile",
             )
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.amber[800],
+          selectedItemColor: Colors.white,
           onTap: _onItemTapped,
         ),
       ),

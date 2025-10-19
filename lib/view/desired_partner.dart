@@ -37,6 +37,11 @@ class PartnerViewState extends State<PartnerView> {
   int _pageNumber = 1;
   bool _error = false;
   bool _loading = true;
+  bool _isSubCasteExpanded = false;
+  bool _isEducationExpanded = false;
+  bool _isMaritalStatusExpanded = false;
+  bool _isAgeExpanded = false;
+  
   final int _defaultMatchesPerPageCount = 10;
   final int _nextPageThreshold = 2;
   List userList = [];
@@ -120,6 +125,18 @@ class PartnerViewState extends State<PartnerView> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       key: _scaffoldKey,
+      appBar: AppBar( // 👈 ADD THIS AppBar
+        title: Text(widget.title),
+        actions: <Widget>[ // 👈 ADD THE ICON BUTTON HERE
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.blue), // Use an appropriate color
+            onPressed: () {
+              // You might need a delay or check if the context is valid if it fails
+              _scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
+        ],
+      ),
       endDrawer: Drawer(
           child: Column(mainAxisSize: MainAxisSize.max, children: <Widget>[
         Expanded(
@@ -127,7 +144,21 @@ class PartnerViewState extends State<PartnerView> {
           children: <Widget>[
             ExpansionTile(
               key: const Key('subcaste'),
-              title: const Text("Sub-Caste"),
+              // 1. Manage the color state and immediately collapse the tile.
+              onExpansionChanged: (bool isExpanded) {
+                setState(() {
+                  // Toggle the color state based on the click
+                  _isSubCasteExpanded = isExpanded; 
+                });   
+              }, 
+              // 2. Conditionally set the title color based on the state variable
+              title: Text(
+                "Sub-Caste",
+                style: TextStyle(
+                  color: _isSubCasteExpanded ? Colors.blue : Colors.black, // Change color
+                ),
+              ),
+              
               children: <Widget>[
                 SimpleGroupedCheckbox<dynamic>(
                   //groupTitle:"Basic",
@@ -143,15 +174,29 @@ class PartnerViewState extends State<PartnerView> {
                   isLeading: true,
                   itemsTitle: List.from(subCaste),
                   values: List.generate(subCaste.length, (index) => "$index"),
-                  // activeColor: Colors.green,.
+                  groupStyle: GroupStyle(activeColor: Colors.green), // Fixed error for checkbox color
                   // checkFirstElement: false,
                   // isCirculaire: false,
                 ),
               ],
             ),
             ExpansionTile(
-              key: const Key('subcaste'),
-              title: const Text("Education"),
+              key: const Key('education'),
+              // 1. Manage the color state and immediately collapse the tile.
+              onExpansionChanged: (bool isExpanded) {
+                setState(() {
+                  // Toggle the color state based on the click
+                  _isEducationExpanded = isExpanded; 
+                });   
+              }, 
+              // 2. Conditionally set the title color based on the state variable
+              title: Text( // ⬅️ The 'const' keyword must be removed here
+                  "Education",
+                  style: TextStyle(
+                      // This entire line is now valid because the Text widget is no longer const
+                      color: _isEducationExpanded ? Colors.blue : Colors.black,
+                  ),
+              ),
               children: <Widget>[
                 SimpleGroupedCheckbox<dynamic>(
                   //groupTitle:"Basic",
@@ -167,6 +212,7 @@ class PartnerViewState extends State<PartnerView> {
                   isLeading: true,
                   itemsTitle: List.from(education),
                   values: List.generate(education.length, (index) => "$index"),
+                  groupStyle: GroupStyle(activeColor: Colors.green), 
                   // activeColor: Colors.green,
                   // checkFirstElement: false,
                   // isCirculaire: false,
@@ -175,7 +221,17 @@ class PartnerViewState extends State<PartnerView> {
             ),
             ExpansionTile(
               key: const Key('matialstatus'),
-              title: const Text("Marital Status"),
+              onExpansionChanged: (bool isExpanded) {
+                setState(() {
+                  // Toggle the color state based on the click
+                  _isMaritalStatusExpanded = isExpanded; 
+                });   
+              }, 
+              title:  Text(
+                "Marital Status",
+                style: TextStyle(
+                  color: _isMaritalStatusExpanded ? Colors.blue : Colors.black,
+                )),
               children: <Widget>[
                 SimpleGroupedCheckbox<dynamic>(
                   //groupTitle:"Basic",
@@ -192,6 +248,7 @@ class PartnerViewState extends State<PartnerView> {
                   itemsTitle: List.from(maritalStatus),
                   values:
                       List.generate(maritalStatus.length, (index) => "$index"),
+                      groupStyle: GroupStyle(activeColor: Colors.green),
                   // activeColor: Colors.green,
                   // checkFirstElement: false,
                   // isCirculaire: false,
@@ -200,7 +257,17 @@ class PartnerViewState extends State<PartnerView> {
             ),
             ExpansionTile(
               key: const Key('age'),
-              title: const Text("Age"),
+              onExpansionChanged: (bool isExpanded) {
+                setState(() {
+                  // Toggle the color state based on the click
+                  _isAgeExpanded = isExpanded; 
+                });
+              },
+              title: Text(
+                "Age",
+                style: TextStyle(
+                  color: _isAgeExpanded ? Colors.blue : Colors.black
+                )),
               children: <Widget>[
                 SimpleGroupedCheckbox<dynamic>(
                   //groupTitle:"Basic",
@@ -216,6 +283,7 @@ class PartnerViewState extends State<PartnerView> {
                   isLeading: true,
                   itemsTitle: List.from(age),
                   values: List.generate(age.length, (index) => "$index"),
+                  groupStyle: GroupStyle(activeColor: Colors.green),
                   // activeColor: Colors.green,
                   // checkFirstElement: false,
                   // isCirculaire: false,
@@ -266,9 +334,9 @@ class PartnerViewState extends State<PartnerView> {
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             // sets the background color of the `BottomNavigationBar`
-            canvasColor: Colors.teal,
+            canvasColor: Color.fromARGB(255, 239, 191, 4),
             // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-            primaryColor: Colors.amber[800],
+            primaryColor: Colors.white,
             textTheme: Theme.of(context).textTheme.copyWith(
                 bodySmall: const TextStyle(
                     color: Colors
@@ -277,28 +345,28 @@ class PartnerViewState extends State<PartnerView> {
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem> [
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: "Notifications",
+              icon: Icon(Icons.notifications, color:Color.fromARGB(255,46,111,64), size:30.0),
+              label: "Notification",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: "Shortlisted\nProfiles",
+              icon: Icon(Icons.favorite, color:Color.fromARGB(255, 204, 46, 46), size:30.0),
+              label: "Shortlisted",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.call, color:Colors.blue, size:40.0),
-              label: "Call US",
+              icon: Icon(Icons.call, color:Colors.blue, size:30.0),
+              label: "Call us",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.supervisor_account),
-              label: "Desired\nParrtner",
+              icon: Icon(Icons.supervisor_account, color:Colors.white, size:30.0),
+              label: "Matches",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle),
+              icon: Icon(Icons.account_circle, color:Colors.black, size:30.0),
               label: "My Profile",
             )
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.amber[800],
+          selectedItemColor: Colors.white,
           onTap: _onItemTapped,
         ),
       ),
@@ -345,12 +413,6 @@ class PartnerViewState extends State<PartnerView> {
       ]);
     } else {
       return Stack(children: <Widget>[
-        Positioned(
-            top:0,
-            right: 0,
-            child: IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer())),
         Container(
             margin:const EdgeInsets.only(top: 30),
             child: ListView.builder(
@@ -533,6 +595,7 @@ class PartnerViewState extends State<PartnerView> {
         }
       }
       data = {
+        "is_verified": 1,
         "gender": Profile.resList['family_info']['partnerGender'],
         "sub_castes": filterOptions['subcaste'],
         "educations": filterOptions['education'],
@@ -540,11 +603,10 @@ class PartnerViewState extends State<PartnerView> {
         "from_age": fromAge,
         "to_age": toAge,
         "page": _pageNumber,
-        "order by": 'id',
-        "order": 'DESC'
+        "order by": "id",
+        "order": "DESC"
       };
       url = "${config.apiUrl}/users/search";
-
       client.badCertificateCallback =
           ((X509Certificate cert, String host, int port) => true);
       request = await client.postUrl(Uri.parse(url));

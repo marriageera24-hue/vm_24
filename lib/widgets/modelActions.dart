@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vm_24/app_config.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:vm_24/firebase_msg.dart';
 import 'package:vm_24/view/desired_partner.dart';
 import 'package:vm_24/view/login.dart';
 import 'package:vm_24/widgets/formfields.dart';
@@ -133,8 +134,8 @@ void patchDeviceInfo(var otherInfo) async {
   //await Firebase.initializeApp();
   // pushFCMtoken();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  final config = await AppConfig.forEnvironment("prod");
-  // deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
+  final config = await AppConfig.forEnvironment("dev");
+  //deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
   String userToken = prefs.get("token").toString();
   HttpClient client = new HttpClient();
   HttpClientRequest request;
@@ -148,7 +149,7 @@ void patchDeviceInfo(var otherInfo) async {
 
   String url = "${config.apiUrl}/users/me";
   // otherInfo['deviceData'] = deviceData;
-  // otherInfo['fcmToken'] = PushNotifications.token;
+  otherInfo['fcmToken'] = FirebaseMsg.token;
   otherInfo['packageData'] = packageData;
   Map data = {'other_info': (otherInfo)};
   client.badCertificateCallback =
@@ -166,7 +167,7 @@ void patchDeviceInfo(var otherInfo) async {
 Future<String> getProfileData() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final completer = Completer<String>();
-  final config = await AppConfig.forEnvironment("prod");
+  final config = await AppConfig.forEnvironment("dev");
   contents = StringBuffer();
   String url;
   String token = prefs.get("token").toString();

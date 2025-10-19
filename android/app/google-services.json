@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "906363728709",
+    "project_id": "marriage-era-70868",
+    "storage_bucket": "marriage-era-70868.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906363728709:android:ae94d00e6520afa14f042c",
+        "android_client_info": {
+          "package_name": "com.example.vm_24"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNaN4fraJO2vUCrRaRGU4zV88y5tfHD9o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
