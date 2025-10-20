@@ -68,6 +68,8 @@ client.badCertificateCallback =
   HttpClientResponse response = await request.close();
   if (response.statusCode == 200) {
     // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+    await prefs.setBool('isLoggedIn', false);
+    await prefs.remove('userId');
     showAlert(context, "Successfully deleted profile", const LoginPage());
   }
 }

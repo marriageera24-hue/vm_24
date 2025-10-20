@@ -1,6 +1,8 @@
 import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vm_24/firebase_msg.dart';
+import 'package:vm_24/view/profile_view.dart';
 import 'view/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -39,14 +41,49 @@ Future<void> main() async {
   ));
 }
 
+
+// On app startup to check login state
+    Future<bool> checkLoginState() async {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('isLoggedIn') ?? false; // Default to false if not found
+    }
 class VMApp extends StatelessWidget {
   const VMApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: LoginPage(),
-      // Define named routes for navigation triggered by notifications
+    // 💡 FIX: Use FutureBuilder to wait for the asynchronous checkLoginState()
+    return FutureBuilder<bool>(
+      future: checkLoginState(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        // Show a loading screen while checking the state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        // Get the result (default to false if an error occurred or data is null)
+        final bool isLoggedIn = snapshot.data ?? false;
+
+        // Build the main MaterialApp with the initial route based on the login state
+        return MaterialApp(
+          // Define all routes here, including the home/initial route
+          initialRoute: isLoggedIn ? '/profile' : '/login',
+          routes: {
+            // Note: Since you seem to want HomeScreen to be the post-login view,
+            // I'm using '/home' for it. If ProfileView is the post-login landing,
+            // you'd set the route for '/home' to ProfileView().
+            '/login': (context) => const LoginPage(),
+            '/home': (context) => const HomeScreen(),
+            // Add other required routes here
+            '/profile': (context) => ProfileView(),
+            
+          },
+        );
+      },
     );
   }
 }

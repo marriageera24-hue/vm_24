@@ -643,6 +643,7 @@ void _performAction(BuildContext context, String title) async {
     if (title != "Update Password") {
       Map<String, dynamic> resList = jsonDecode(result.toString());
       if (title != "Update Profile") {
+        saveLoginState(resList['user']['uuid']);
         prefs.setString("uuid", resList['user']['uuid']);
         prefs.setString("token", resList["token"]);
       }
@@ -757,3 +758,10 @@ void _showTermsAndConditions(BuildContext context) {
     },
   );
 }
+
+// On successful login
+    Future<void> saveLoginState(String userId) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userId', userId);
+    }

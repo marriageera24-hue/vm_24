@@ -44,11 +44,13 @@ class PartnerViewState extends State<PartnerView> {
   
   final int _defaultMatchesPerPageCount = 10;
   final int _nextPageThreshold = 2;
+  late Future _partnerListFuture;
   List userList = [];
   void initState() {
     PartnerView.userInterest = '';
     PartnerView.partnerList = {};
     PartnerView.selectedIndex = 3;
+    _partnerListFuture = getPartnerData(PartnerViewState.selectedFilter);
     // TODO: implement initState
     super.initState();
     // _hasMore = true;
@@ -330,7 +332,28 @@ class PartnerViewState extends State<PartnerView> {
               )),
         )
       ])),
-      body: createListView(),
+      body: FutureBuilder(
+      future: _partnerListFuture, // Use the Future started in initState
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show initial loading indicator
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          // Show error if initial load failed
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (snapshot.data == 'no data' || (snapshot.data is String && snapshot.data.isEmpty && userList.isEmpty)) {
+          // Handle case where no data is returned initially
+          return const Center(child: Text("No profiles found."));
+        } else {
+          // Data received, build the list
+          // Add initial data to userList after it's loaded
+          if (userList.isEmpty) {
+            userList.addAll(jsonDecode(snapshot.data.toString()));
+          }
+          return createListView();
+        }
+      },
+    ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             // sets the background color of the `BottomNavigationBar`
@@ -374,201 +397,203 @@ class PartnerViewState extends State<PartnerView> {
   }
 
   Widget createListView() {
-    RegExp regExp = RegExp(r'(https://.*?.(png|jpg|jpeg))',
-        caseSensitive: false, multiLine: false);
-    if (userList.isEmpty) {
-      if (_loading) {
-        return const Center(
-            child: Padding(
-          padding: EdgeInsets.all(8),
-          child: CircularProgressIndicator(),
-        ));
-      } else if (_error) {
-        return Center(
-            child: InkWell(
-          onTap: () {
-            setState(() {
-              _loading = false;
-              _error = false;
-              convertListData();
-            });
-          },
-          child: const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text("Error while loading List, tap to try agin"),
-          ),
-        ));
-      }
-    } else if (userList.contains("no data")) {
-      return Stack(children: <Widget>[
-        Container(
-            child: const Column(children: <Widget>[
-          Text('No more profiles...',
-              style:
-                  TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-          SizedBox(
-            height: 50,
-          )
-        ])),
-      ]);
-    } else {
-      return Stack(children: <Widget>[
-        Container(
-            margin:const EdgeInsets.only(top: 30),
-            child: ListView.builder(
-                itemCount: userList.length,
-                itemBuilder: (context, int index) {
-                  if (index == userList.length - _nextPageThreshold &&
-                      userList.toString() != 'no data') {
-                    convertListData();
-                  }
-                  if (index == userList.length &&
-                      userList.toString() != 'no data') {
-                    if (_error) {
-                      return Center(
-                          child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _loading = true;
-                            _error = false;
-                            convertListData();
-                          });
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                              "Error while loading photos, tap to try agin"),
-                        ),
-                      ));
-                    }
-                  }
-                  final values = userList[index];
-                  return Column(children: <Widget>[
-                    Row(
-                      children: [
-                        Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 55,
-                              backgroundColor: Colors.white,
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(50)),
-                                  width: 100,
-                                  height: 100,
-                                  child: GestureDetector(
-                                      onTap: () async {
-                                        await showDialog(
-                                            context: context,
-                                            builder: (_) => ImageDialog(
-                                                  imgUrl: regExp.hasMatch(
-                                                          values['user_media']
-                                                              .toString())
-                                                      ? regExp.stringMatch(
-                                                          values['user_media']
-                                                              .toString())
-                                                      : '',
-                                                  isCachedImage: true,
-                                                ));
-                                      },
-                                      child: loadImage(
-                                          values['user_media'].toString()))),
-                            ),
-                          ],
-                        ),
-                        const Column(
-                          children: [
-                            SizedBox(
-                              width: 50,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(values['first_name'] +
-                                " " +
-                                values['last_name']),
-                            //Text(values['phone']),
-                            Text(
-                              ((DateTime.now()
-                                              .difference(DateTime(
-                                                  int.parse(
-                                                      values['date_of_birth']
-                                                          .toString()
-                                                          .substring(0, 4)),
-                                                  int.parse(
-                                                      values['date_of_birth']
-                                                          .toString()
-                                                          .substring(6, 7)),
-                                                  int.parse(
-                                                      values['date_of_birth']
-                                                          .toString()
-                                                          .substring(9, 10))))
-                                              .inDays) /
-                                          365)
-                                      .toString()
-                                      .substring(0, 2) +
-                                  " years",
-                            ),
-                            Text(subCaste[int.parse(values['sub_caste'])]),
-                            Text(education[int.parse(
-                                values['educationl_info']['education'])]),
-                            Text(values['other_info']['district']),
-                            GestureDetector(
-                              child: const Text(
-                                "View Details",
-                                style: TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              onTap: () {
-                                PartnerView.partnerList = values;
-                                if(!values.containsKey('interest_details')  || values['interest_details']['type'] == null || values['interest_details']['type'] == ''){
-                                  Navigator.push(
-                                    context, 
-                                    MaterialPageRoute(
-                                      builder: (context) => PaymentView(
-                                        title: "Recharge for Profile View",
-                                        autoCheckout: true,
-                                        view_id: values['uuid'] // ⭐️ This is the key change
-                                      )
-                                    )
-                                  );
+  RegExp regExp = RegExp(r'(https://.*?.(png|jpg|jpeg))',
+      caseSensitive: false, multiLine: false);
+  
+  // No need for initial loading/error checks here, FutureBuilder handles that.
 
-                                }else{
-                                  values['interest_details']['type'] != 'interested'
-                                          ? ProfileAction(context, values['uuid'],
-                                              type: "visited")
-                                          : '';
-                                  PartnerView.userInterest = values['interest_details']['type'];
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ProfileView()));
-                                } 
-                              }
-                            ),
-                            const SizedBox(
-                              height: 25,
-                            ),
-                          ],
-                        ),
-                      ],
+  // Check if no more data is available
+  if (!_hasMore && userList.isNotEmpty) {
+    return Column(children: [
+      Expanded(child: _buildPartnerList(regExp)), // Helper for the list content
+      const Padding(
+        padding: EdgeInsets.all(16.0),
+        // child: Text('No more profiles...', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+      ),
+    ]);
+  } else if (userList.isEmpty && !_loading && !_error) {
+     return const Center(child: Text('No profiles found.'));
+  }
+  
+  return _buildPartnerList(regExp);
+}
+
+  Widget _buildPartnerList(RegExp regExp) {
+    return Container(
+      margin:const EdgeInsets.only(top: 30),
+      child: ListView.builder(
+        itemCount: userList.length + (_hasMore ? 1 : 0), // Add 1 for the loading indicator if more pages exist
+        itemBuilder: (context, int index) {
+          if (index == userList.length) {
+            // This is the loading indicator at the bottom
+            return const Center(child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ));
+          }
+
+          // Pagination Trigger: Call for next page when near the end
+          if (index == userList.length - _nextPageThreshold && _hasMore) {
+            convertListData();
+          }
+
+          final values = userList[index];
+          // ... rest of your profile card widget logic
+          return Column(children: <Widget>[
+            Row(
+              children: [
+                Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 55,
+                      backgroundColor: Colors.white,
+                      child: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(50)),
+                          width: 100,
+                          height: 100,
+                          child: GestureDetector(
+                              // onTap: () async {
+                              //   await showDialog(
+                              //       context: context,
+                              //       builder: (_) => ImageDialog(
+                              //             imgUrl: regExp.hasMatch(
+                              //                     values['user_media']
+                              //                         .toString())
+                              //                 ? regExp.stringMatch(
+                              //                     values['user_media']
+                              //                         .toString())
+                              //                 : '',
+                              //             isCachedImage: true,
+                              //           ));
+                              // },
+                              child: ClipOval(child: loadImage(
+                                  values['user_media'].toString())))),
                     ),
-                  ]);
-                }))
-      ]);
-    }
-    return const SizedBox();
-  }
+                  ],
+                ),
+                const Column(
+                  children: [
+                    SizedBox(
+                      width: 50,
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(values['first_name'] +
+                        " " +
+                        values['last_name']),
+                    //Text(values['phone']),
+                    Text(
+                      ((DateTime.now()
+                                      .difference(DateTime(
+                                          int.parse(
+                                              values['date_of_birth']
+                                                  .toString()
+                                                  .substring(0, 4)),
+                                          int.parse(
+                                              values['date_of_birth']
+                                                  .toString()
+                                                  .substring(6, 7)),
+                                          int.parse(
+                                              values['date_of_birth']
+                                                  .toString()
+                                                  .substring(9, 10))))
+                                      .inDays) /
+                                  365)
+                              .toString()
+                              .substring(0, 2) +
+                          " years",
+                    ),
+                    Text(subCaste[int.parse(values['sub_caste'])]),
+                    Text(education[int.parse(
+                        values['educationl_info']['education'])]),
+                    Text(values['other_info']['district']),
+                    GestureDetector(
+                      child: const Text(
+                        "View Details",
+                        style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      onTap: () {
+                        PartnerView.partnerList = values;
+                        if(!values.containsKey('interest_details')  || values['interest_details']['type'] == null || values['interest_details']['type'] == ''){
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(
+                              builder: (context) => PaymentView(
+                                title: "Recharge for Profile View",
+                                autoCheckout: true,
+                                view_id: values['uuid'] // ⭐️ This is the key change
+                              )
+                            )
+                          );
 
-  Widget convertListData() {
-    Future list = getPartnerData(selectedFilter);
-    list.then((value) => userList.addAll((jsonDecode(value))));
-    return const SizedBox();
-  }
+                        }else{
+                          values['interest_details']['type'] != 'interested'
+                                  ? ProfileAction(context, values['uuid'],
+                                      type: "visited")
+                                  : '';
+                          PartnerView.userInterest = values['interest_details']['type'];
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ProfileView()));
+                        } 
+                      }
+                    ),
+                    const SizedBox(
+                      height: 25,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Divider(),
+          ]);
+        },
+      )
+    );
+}
+
+  void convertListData() {
+  // Add a guard to prevent unnecessary fetches or if the process is ongoing
+  if (!_hasMore || _loading) return; 
+
+  setState(() {
+    _loading = true; // Set loading state when fetching next page
+  });
+
+  Future list = getPartnerData(PartnerViewState.selectedFilter);
+
+  list.then((value) {
+    if (value is String && value == 'no data') {
+        setState(() {
+            _hasMore = false;
+            _loading = false;
+        });
+    } else {
+        // Decode and add data
+        userList.addAll(jsonDecode(value));
+        setState(() {
+            _loading = false;
+            _error = false;
+            _pageNumber = _pageNumber + 1;
+            // You already set _hasMore in getPartnerData, but ensure the logic is clean
+            _hasMore = userList.length == _defaultMatchesPerPageCount;
+        });
+    }
+  }).catchError((e) {
+      setState(() {
+          _error = true;
+          _loading = false;
+      });
+  });
+}
 
   Future<dynamic> getPartnerData(Map filterOptions) async {
     final config = await AppConfig.forEnvironment("dev");
@@ -595,7 +620,7 @@ class PartnerViewState extends State<PartnerView> {
         }
       }
       data = {
-        "is_verified": 1,
+        "is_verified": true,
         "gender": Profile.resList['family_info']['partnerGender'],
         "sub_castes": filterOptions['subcaste'],
         "educations": filterOptions['education'],
@@ -606,6 +631,7 @@ class PartnerViewState extends State<PartnerView> {
         "order by": "id",
         "order": "DESC"
       };
+      print(data);
       url = "${config.apiUrl}/users/search";
       client.badCertificateCallback =
           ((X509Certificate cert, String host, int port) => true);
