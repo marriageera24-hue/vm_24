@@ -17,9 +17,15 @@ import 'package:vm_24/view/profile.dart';
 import 'package:vm_24/view/profile_view.dart';
 import 'package:vm_24/view/signup.dart';
 import 'package:vm_24/widgets/dialog.dart';
+import 'package:vm_24/services/phone_verification_service.dart';
 
 final GlobalKey<State> _keyLoader = GlobalKey<State>();
 bool _isAccepted = false;
+// 🔑 NEW: Global state for phone verification
+bool _isPhoneVerified = false; 
+final PhoneVerificationService _verificationService = PhoneVerificationService();
+String? _verifiedPhoneNumber;
+
 Map<String, TextEditingController> _fieldController = {
   'first_name': TextEditingController(text: ''),
   'middle_name': TextEditingController(text: ''),
@@ -38,6 +44,7 @@ Map<String, TextEditingController> _fieldController = {
   'income': TextEditingController(text: ''),
   'service': TextEditingController(text: ''),
   'alternateContact': TextEditingController(text: ''),
+  'otp_code': TextEditingController(text: ''),
 };
 
 Map<String, String> rbValues = {
@@ -392,7 +399,15 @@ Widget submitButton(BuildContext context, String title) {
     onTap: () {
       if (title == "Signup") {
         final phone = "+91${_fieldController['phone']?.text.trim()}";
-        // registerUser(phone, context);
+        if (!_isPhoneVerified) {
+          // If NOT verified, initiate the verification process (sends OTP)
+          _handlePhoneVerification(context, title);
+        } else {
+          print("here in else");
+          // 🔑 2. If already verified, proceed with the custom registration API call
+          Dialogs.showLoadingDialog(context, _keyLoader);
+          _performAction(context, title); // This is your existing registration call
+        }
       } else {
          Dialogs.showLoadingDialog(context, _keyLoader);
         _performAction(context, title);
@@ -512,12 +527,18 @@ void _performAction(BuildContext context, String title) async {
       break;
 
     case "Signup":
+      // 🔑 CRITICAL FIX: Ensure registration only uses the VERIFIED number
+      if (_verifiedPhoneNumber == null || _verifiedPhoneNumber!.isEmpty) {
+         Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading
+         showAlert(context, "Verification state lost. Please verify your phone number again.", Signup(key:null, title: ''));
+         return; // STOP the registration process
+      }
       actionClass = Profile();
       data = {
         'first_name': _fieldController['first_name']?.text,
         'last_name': _fieldController['last_name']?.text,
         'email': _fieldController['email']?.text,
-        'phone': _fieldController['phone']?.text.trim(),
+        'phone': _verifiedPhoneNumber!,
         'password': _fieldController['password']?.text
       };
       url = "${config.apiUrl}/users/register";
@@ -760,8 +781,120 @@ void _showTermsAndConditions(BuildContext context) {
 }
 
 // On successful login
-    Future<void> saveLoginState(String userId) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userId', userId);
-    }
+Future<void> saveLoginState(String userId) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', true);
+  await prefs.setString('userId', userId);
+}
+
+// 🔑 NEW: Function to show the OTP input dialog
+void _showOtpInputDialog(BuildContext context, String phoneNumber) {
+  final TextEditingController otpController = TextEditingController();
+  
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Enter OTP'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          // 1. Text message
+          Text(
+            'A code has been sent to $phoneNumber',
+            style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 10),
+
+          // 2. TextFormField with the local controller
+          TextFormField(
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            maxLength: 6, // Standard OTP length
+            decoration: const InputDecoration(
+              labelText: 'OTP Code',
+              border: OutlineInputBorder(), // Use a standard border for clarity
+              filled: true,
+              fillColor: Color(0xfff3f3f4),
+              counterText: "", // Hide the default character counter
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly, // Only allows numbers
+            ],
+          ),
+        ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('CANCEL'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+          ElevatedButton(
+            child: const Text('VERIFY'),
+            onPressed: () async {
+              Dialogs.showLoadingDialog(dialogContext, _keyLoader);
+              final smsCode = otpController.text.trim();
+              
+              // Call the service to verify the code and sign out
+              final success = await _verificationService.verifyAndSignOut(
+                smsCode: smsCode,
+              );
+              
+              Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
+              Navigator.of(dialogContext).pop(); // Dismiss OTP dialog
+
+              if (success) {
+                // 🔑 CRITICAL FIX: Store the successfully verified number
+                _verifiedPhoneNumber = _fieldController['phone']?.text.trim();
+                // Set the global flag to allow registration
+                _isPhoneVerified = true;
+                //showAlert(context, "Phone number verified! You are now registered.", '');
+                 _performAction(context, "Signup");
+                // OPTIONAL: Make the phone number field read-only now
+                _fieldController['phone']?.text = _verifiedPhoneNumber!;
+              } else {
+                _isPhoneVerified = false;
+                _verifiedPhoneNumber = null;
+                showAlert(context, "Invalid OTP. Please try again.", Signup(key:null, title: ''));
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// 🔑 NEW: Function to initiate the OTP process
+void _handlePhoneVerification(BuildContext context, String title) async {
+  // Ensure the phone number is 10 digits and has a country code prefix (e.g., +91)
+  final rawPhone = _fieldController['phone']?.text.trim() ?? '';
+  final phoneNumber = "+91$rawPhone"; // Assuming Indian numbers
+
+  if (!RegExp(r"^\+?[0-9]{10,15}$").hasMatch(phoneNumber)) {
+    showAlert(context, "Please enter a valid phone number with country code (e.g., +91).", Signup(key:null, title: ''));
+    return;
+  }
+  
+  Dialogs.showLoadingDialog(context, _keyLoader);
+
+  await _verificationService.sendOtp(
+    phoneNumber: phoneNumber,
+    codeSentCallback: (verId, resendToken) {
+      Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
+      if (verId == "AUTO_VERIFIED") {
+        // Android auto-verified, proceed directly to registration allowance
+        _isPhoneVerified = true;
+        showAlert(context, "Phone number automatically verified! You can now register.", Signup(key:null, title: ''));
+      } else {
+        // Code sent via SMS, show the input dialog
+        _showOtpInputDialog(context, phoneNumber);
+      }
+    },
+    verificationFailedCallback: (e) {
+      Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
+      showAlert(context, "Verification Failed: ${e.message}", Signup(key:null, title: ''));
+    },
+  );
+}
