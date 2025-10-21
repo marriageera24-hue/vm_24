@@ -397,17 +397,16 @@ Widget submitButton(BuildContext context, String title) {
       ),
     ),
     onTap: () {
-      if (title == "Signup") {
+      if (title == "Signup" || title == "Update Profile" || title == "Update Password") {
         final phone = "+91${_fieldController['phone']?.text.trim()}";
-        if (!_isPhoneVerified) {
+        // if (!_isPhoneVerified) {
           // If NOT verified, initiate the verification process (sends OTP)
           _handlePhoneVerification(context, title);
-        } else {
-          print("here in else");
+        // } else {
           // 🔑 2. If already verified, proceed with the custom registration API call
-          Dialogs.showLoadingDialog(context, _keyLoader);
-          _performAction(context, title); // This is your existing registration call
-        }
+        //   Dialogs.showLoadingDialog(context, _keyLoader);
+        //   _performAction(context, title); // This is your existing registration call
+        // }
       } else {
          Dialogs.showLoadingDialog(context, _keyLoader);
         _performAction(context, title);
@@ -788,7 +787,7 @@ Future<void> saveLoginState(String userId) async {
 }
 
 // 🔑 NEW: Function to show the OTP input dialog
-void _showOtpInputDialog(BuildContext context, String phoneNumber) {
+void _showOtpInputDialog(BuildContext context, String phoneNumber, String title) {
   final TextEditingController otpController = TextEditingController();
   
   showDialog(
@@ -850,7 +849,7 @@ void _showOtpInputDialog(BuildContext context, String phoneNumber) {
                 // Set the global flag to allow registration
                 _isPhoneVerified = true;
                 //showAlert(context, "Phone number verified! You are now registered.", '');
-                 _performAction(context, "Signup");
+                 _performAction(context, title);
                 // OPTIONAL: Make the phone number field read-only now
                 _fieldController['phone']?.text = _verifiedPhoneNumber!;
               } else {
@@ -889,7 +888,7 @@ void _handlePhoneVerification(BuildContext context, String title) async {
         showAlert(context, "Phone number automatically verified! You can now register.", Signup(key:null, title: ''));
       } else {
         // Code sent via SMS, show the input dialog
-        _showOtpInputDialog(context, phoneNumber);
+        _showOtpInputDialog(context, phoneNumber, title);
       }
     },
     verificationFailedCallback: (e) {
