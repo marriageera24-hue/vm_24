@@ -9,10 +9,11 @@ class AppConfig {
   static Future<AppConfig> forEnvironment(String env) async {
     // set default to dev if nothing was passed
     env = env ?? 'dev';
+    // env = 'dev';
 
     // load the json file
     final contents = await rootBundle.loadString(
-      'assets/config/dev.json',
+      'assets/config/${env}.json',
     );
 
     // decode our json

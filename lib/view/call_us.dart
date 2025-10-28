@@ -2,12 +2,12 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> makePhoneCall() async {
-  String phoneNumber = '8446226497';
+  String phoneNumber = '9405787641';
 
   //code to redirect to dialer page
   final Uri launchUri = Uri(
         scheme: 'tel',
-        path: '+91 8446226497',
+        path: '+91 9405787641',
       );
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);

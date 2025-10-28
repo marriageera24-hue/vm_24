@@ -37,9 +37,19 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Obtains the signing configuration from the 'debug' variant.
+            // This is safe for local release builds, but you should use
+            // a real release key for the Play Store.
             signingConfig = signingConfigs.getByName("debug")
+            
+            // Enables code and resource shrinking.
+            isMinifyEnabled = true
+            
+            // Specifies the ProGuard rules.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

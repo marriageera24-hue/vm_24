@@ -51,7 +51,7 @@ void logout(BuildContext context, GlobalKey _keyLoader) async {
 void delete(BuildContext context) async{
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.get("token").toString();
-  final config = await AppConfig.forEnvironment("dev");
+  final config = await AppConfig.forEnvironment("prod");
   String url = "${config.apiUrl}/users/delete";
               HttpClient client = HttpClient();
 client.badCertificateCallback =
@@ -136,7 +136,7 @@ void patchDeviceInfo(var otherInfo) async {
   //await Firebase.initializeApp();
   // pushFCMtoken();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  final config = await AppConfig.forEnvironment("dev");
+  final config = await AppConfig.forEnvironment("prod");
   //deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
   String userToken = prefs.get("token").toString();
   HttpClient client = new HttpClient();
@@ -169,7 +169,7 @@ void patchDeviceInfo(var otherInfo) async {
 Future<String> getProfileData() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final completer = Completer<String>();
-  final config = await AppConfig.forEnvironment("dev");
+  final config = await AppConfig.forEnvironment("prod");
   contents = StringBuffer();
   String url;
   String token = prefs.get("token").toString();

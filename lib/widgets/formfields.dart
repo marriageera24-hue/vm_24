@@ -12,6 +12,8 @@ import 'package:datetime_picker_formfield_new/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart' as http_io; // Import specific to IOClient
+import 'dart:io';
 import 'package:vm_24/app_config.dart';
 import 'package:vm_24/view/profile.dart';
 import 'package:vm_24/view/profile_view.dart';
@@ -60,6 +62,16 @@ Map resList={};
 var date;
 var time;
 var bod;
+
+
+// Function to create an HTTP Client that trusts self-signed certs
+// http_io.IOClient createInsecureClient() {
+//   final ioClient = HttpClient()
+//       ..badCertificateCallback = 
+//           (X509Certificate cert, String host, int port) => true;
+  
+//   return http_io.IOClient(ioClient);
+// }
 
 // Country _selected;
 //class _FormFieldsState extends State<FormFields> {
@@ -397,8 +409,13 @@ Widget submitButton(BuildContext context, String title) {
       ),
     ),
     onTap: () {
-      if (title == "Signup" || title == "Update Profile" || title == "Update Password") {
-        final phone = "+91${_fieldController['phone']?.text.trim()}";
+      if (title == "Signup" || title == "Update Profile" ||  title == "Update Password") {
+        final phone;
+        if(title == "Update Password") {
+          phone = "+91${_fieldController['username']?.text.trim()}";
+        }else{
+          phone = "+91${_fieldController['phone']?.text.trim()}";
+        }
         // if (!_isPhoneVerified) {
           // If NOT verified, initiate the verification process (sends OTP)
           _handlePhoneVerification(context, title);
@@ -518,6 +535,11 @@ void _performAction(BuildContext context, String title) async {
     case "Update Password":
       actionClass = const LoginPage();
       successMessage = "Password has been Updated Successfully.";
+      if (_verifiedPhoneNumber == null || _verifiedPhoneNumber!.isEmpty) {
+         Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading
+         showAlert(context, "Verification state lost. Please verify your phone number again.", actionClass);
+         return; // STOP the registration process
+      }
       data = {
         'username': _fieldController['username']?.text,
         'password': _fieldController['password']?.text
@@ -545,6 +567,11 @@ void _performAction(BuildContext context, String title) async {
           "You have registered Successfully. Please Complete your Profile";
       break;
     case "Update Profile":
+      if (_verifiedPhoneNumber == null || _verifiedPhoneNumber!.isEmpty) {
+         Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading
+         showAlert(context, "Verification state lost. Please verify your phone number again.", Profile());
+         return; // STOP the registration process
+      }
       String uuid = prefs.get("uuid").toString();
       Map proInfo = {
         'education': Profile.myActivity['education'],
@@ -580,7 +607,7 @@ void _performAction(BuildContext context, String title) async {
         'middle_name': _fieldController['middle_name']?.text,
         'last_name': _fieldController['last_name']?.text,
         'email': _fieldController['email']?.text,
-        'phone': _fieldController['phone']?.text.trim(),
+        'phone': _verifiedPhoneNumber,
         'gender': rbValues['gender'].toString(),
         'date_of_birth': bod.toString(),
         'marital_status': Profile.myActivity['marital_status'].toString(),
@@ -616,6 +643,9 @@ void _performAction(BuildContext context, String title) async {
       break;
     default:
   }
+
+  // 🎯 Create the custom client that trusts the self-signed certificate
+  // final insecureClient = createInsecureClient();
   HttpClient client = HttpClient();
   String token = '';
   HttpClientRequest request;
@@ -630,19 +660,24 @@ void _performAction(BuildContext context, String title) async {
     request.headers.set('content-type', 'application/json');
     request.headers.set('Accept-Language', 'en-US,en;q=0.9');
     request.headers.set('Authorization', 'Bearer $userToken');
-    // if (Profile.imgPath != "") {
-    //   var imgrequest = http.MultipartRequest('POST', Uri.parse(imgUrl));
-    //   imgrequest.files
-    //       .add(await http.MultipartFile.fromPath('pics', Profile.imgPath));
-    //   imgrequest.headers.addAll({
-    //     'Authorization': 'Bearer $userToken',
-    //     'Content-Type': 'multipart/form-data',
-    //     'Accept-Language': 'en-US,en;q=0.9'
-    //   });
+    if (Profile.imgPath != "") {
+      var imgrequest = http.MultipartRequest('POST', Uri.parse(imgUrl));
+      imgrequest.files
+          .add(await http.MultipartFile.fromPath('pics', Profile.imgPath));
+      imgrequest.headers.addAll({
+        'Authorization': 'Bearer $userToken',
+        'Content-Type': 'multipart/form-data',
+        'Accept-Language': 'en-US,en;q=0.9'
+      });
 
-    //   var imgresponse = await imgrequest.send();
-    //   imageCache.clear();
-    // }
+      var imgresponse = await imgrequest.send();
+      // if (imgresponse.statusCode == 200) {
+      //   print("image response================="+imgresponse.statusCode.toString()); 
+      // }else{
+      //   print("image response================="+imgresponse.statusCode.toString());
+      // }
+      imageCache.clear();
+    }
   } else {
     request = await client.postUrl(Uri.parse(url));
     request.headers.set('content-type', 'application/json');
@@ -701,6 +736,8 @@ void showAlert(BuildContext context, String message, var actionClass) {
                           MaterialPageRoute(
                               builder: (context) => actionClass));
                     } else {
+                      // This is the primary fix for the "loader on page" issue.
+                      Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
                       Navigator.pop(context);
                     }
                   },
@@ -842,20 +879,32 @@ void _showOtpInputDialog(BuildContext context, String phoneNumber, String title)
               
               Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
               Navigator.of(dialogContext).pop(); // Dismiss OTP dialog
-
               if (success) {
                 // 🔑 CRITICAL FIX: Store the successfully verified number
-                _verifiedPhoneNumber = _fieldController['phone']?.text.trim();
+                _verifiedPhoneNumber = phoneNumber.replaceAll(RegExp(r'^\+91'), '');
                 // Set the global flag to allow registration
                 _isPhoneVerified = true;
-                //showAlert(context, "Phone number verified! You are now registered.", '');
-                 _performAction(context, title);
                 // OPTIONAL: Make the phone number field read-only now
                 _fieldController['phone']?.text = _verifiedPhoneNumber!;
+                //showAlert(context, "Phone number verified! You are now registered.", '');
+                 _performAction(context, title);
+                
               } else {
                 _isPhoneVerified = false;
                 _verifiedPhoneNumber = null;
-                showAlert(context, "Invalid OTP. Please try again.", Signup(key:null, title: ''));
+                dynamic actionClass = Signup(key:null, title: '');
+                switch (title) {
+                  case "Update Profile": 
+                    actionClass = Profile(); 
+                  break;
+                  case "Update Password": 
+                    actionClass = const ForgotPass(key: null, title: ''); 
+                  break;
+                  default:
+                    actionClass = Signup(key:null, title: '');
+                  break;
+                }
+                showAlert(context, "Invalid OTP. Please try again.", actionClass);
               }
             },
           ),
@@ -867,12 +916,27 @@ void _showOtpInputDialog(BuildContext context, String phoneNumber, String title)
 
 // 🔑 NEW: Function to initiate the OTP process
 void _handlePhoneVerification(BuildContext context, String title) async {
-  // Ensure the phone number is 10 digits and has a country code prefix (e.g., +91)
-  final rawPhone = _fieldController['phone']?.text.trim() ?? '';
+  final rawPhone;
+  print("Title: $title");
+  dynamic actionClass = Signup(key:null, title: '');
+  switch (title) {
+    case "Update Profile": 
+      actionClass = Profile(); 
+      rawPhone = _fieldController['phone']?.text.trim() ?? '';
+    break;
+    case "Update Password": 
+      actionClass = const ForgotPass(key: null, title: ''); 
+      rawPhone = _fieldController['username']?.text.trim() ?? '';
+    break;
+    default:
+      actionClass = Signup(key:null, title: '');
+      rawPhone = _fieldController['phone']?.text.trim() ?? '';
+    break;
+  }
   final phoneNumber = "+91$rawPhone"; // Assuming Indian numbers
-
+ 
   if (!RegExp(r"^\+?[0-9]{10,15}$").hasMatch(phoneNumber)) {
-    showAlert(context, "Please enter a valid phone number with country code (e.g., +91).", Signup(key:null, title: ''));
+    showAlert(context, "Please enter a valid phone number with country code (e.g., +91).", actionClass);
     return;
   }
   
@@ -885,7 +949,7 @@ void _handlePhoneVerification(BuildContext context, String title) async {
       if (verId == "AUTO_VERIFIED") {
         // Android auto-verified, proceed directly to registration allowance
         _isPhoneVerified = true;
-        showAlert(context, "Phone number automatically verified! You can now register.", Signup(key:null, title: ''));
+        showAlert(context, "Phone number automatically verified! You can now register.", actionClass);
       } else {
         // Code sent via SMS, show the input dialog
         _showOtpInputDialog(context, phoneNumber, title);
@@ -893,7 +957,7 @@ void _handlePhoneVerification(BuildContext context, String title) async {
     },
     verificationFailedCallback: (e) {
       Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
-      showAlert(context, "Verification Failed: ${e.message}", Signup(key:null, title: ''));
+      showAlert(context, "Verification Failed: ${e.message}", actionClass);
     },
   );
 }

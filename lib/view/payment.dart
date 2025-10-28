@@ -128,7 +128,7 @@ class PaymentViewState extends State<PaymentView> {
   void openCheckout() async {
     var options = {
       'key': 'rzp_test_RO9c0fErkgL1Yh',
-      'amount': 100,
+      'amount': 51,
       'name': 'Marriage Era',
       'description': 'Recharge Wallet',
       'retry': {'enabled': true, 'max_count': 4},

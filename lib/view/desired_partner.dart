@@ -596,7 +596,7 @@ class PartnerViewState extends State<PartnerView> {
 }
 
   Future<dynamic> getPartnerData(Map filterOptions) async {
-    final config = await AppConfig.forEnvironment("dev");
+    final config = await AppConfig.forEnvironment("prod");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map data;
     String url;
