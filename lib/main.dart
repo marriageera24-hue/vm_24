@@ -1,8 +1,8 @@
 import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vm_24/firebase_msg.dart';
-import 'package:vm_24/view/profile_view.dart';
+import 'package:vadar_marriage_era/firebase_msg.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
 import 'view/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

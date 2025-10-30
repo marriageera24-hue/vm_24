@@ -50,7 +50,7 @@ Future<void> initializeLocalNotifications() async {
 
   // Settings for Android & iOS
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('launcher_icon');
       
   const DarwinInitializationSettings initializationSettingsDarwin =
       DarwinInitializationSettings(

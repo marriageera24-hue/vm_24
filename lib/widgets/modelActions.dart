@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 // import 'package:flutter_form_builder/l10n/messages_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vm_24/app_config.dart';
+import 'package:vadar_marriage_era/app_config.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:vm_24/firebase_msg.dart';
-import 'package:vm_24/view/desired_partner.dart';
-import 'package:vm_24/view/login.dart';
-import 'package:vm_24/widgets/formfields.dart';
+import 'package:vadar_marriage_era/firebase_msg.dart';
+import 'package:vadar_marriage_era/view/desired_partner.dart';
+import 'package:vadar_marriage_era/view/login.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-// import 'package:vm_24/push_notifications.dart';
+// import 'package:vadar_marriage_era/push_notifications.dart';
 
 var contents = StringBuffer();
 setPartnerToken(String token) async {

@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:vm_24/view/desired_partner.dart';
-import 'package:vm_24/view/profile.dart';
-import 'package:vm_24/view/profile_view.dart';
-import 'package:vm_24/view/shortlisted.dart';
-import 'package:vm_24/view/notification.dart';
-import 'package:vm_24/widgets/formfields.dart';
-import 'package:vm_24/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/view/desired_partner.dart';
+import 'package:vadar_marriage_era/view/profile.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
+import 'package:vadar_marriage_era/view/shortlisted.dart';
+import 'package:vadar_marriage_era/view/notification.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
 
 class PaymentView extends StatefulWidget {
   PaymentView({super.key, this.title = "", this.autoCheckout = false, this.view_id=''});

@@ -45,7 +45,7 @@ class NotificationService {
   void initializeLocalNotifications() {
     // Android initialization settings
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('launcher_icon');
 
     // Cross-platform initialization settings
     const InitializationSettings initializationSettings =

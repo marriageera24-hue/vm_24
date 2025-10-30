@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
 
 class ForgotPass extends StatefulWidget {
   const ForgotPass({super.key, required this.title});
@@ -36,7 +36,7 @@ class ForgotPassState extends State<ForgotPass> {
                   ),
                   //Positioned(top: 40, child: _title()),
                   SizedBox(height: 30.0),
-                  formFieldTextLogin("Email/Mobile", "username"),
+                  formFieldTextLogin("Mobile", "username"),
                   SizedBox(height: 25.0),
                   formFieldTextLogin("New Password", "password",
                       isPassword: true),

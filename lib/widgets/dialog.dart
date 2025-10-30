@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
 
 class Dialogs {
   static Future<void> showLoadingDialog(

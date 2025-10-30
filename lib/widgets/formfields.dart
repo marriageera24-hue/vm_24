@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vm_24/firebase_msg.dart';
-import 'package:vm_24/view/desired_partner.dart';
-import 'package:vm_24/view/forgot_pass.dart';
-import 'package:vm_24/view/login.dart';
+import 'package:vadar_marriage_era/firebase_msg.dart';
+import 'package:vadar_marriage_era/view/desired_partner.dart';
+import 'package:vadar_marriage_era/view/forgot_pass.dart';
+import 'package:vadar_marriage_era/view/login.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -14,12 +14,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart' as http_io; // Import specific to IOClient
 import 'dart:io';
-import 'package:vm_24/app_config.dart';
-import 'package:vm_24/view/profile.dart';
-import 'package:vm_24/view/profile_view.dart';
-import 'package:vm_24/view/signup.dart';
-import 'package:vm_24/widgets/dialog.dart';
-import 'package:vm_24/services/phone_verification_service.dart';
+import 'package:vadar_marriage_era/app_config.dart';
+import 'package:vadar_marriage_era/view/profile.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
+import 'package:vadar_marriage_era/view/signup.dart';
+import 'package:vadar_marriage_era/widgets/dialog.dart';
+import 'package:vadar_marriage_era/services/phone_verification_service.dart';
+import 'package:vadar_marriage_era/widgets/pdfViewer.dart';
 
 final GlobalKey<State> _keyLoader = GlobalKey<State>();
 bool _isAccepted = false;
@@ -119,6 +120,7 @@ Widget formFieldTextLogin(String title, String field,
           height: 10,
         ),
         TextFormField(
+          textCapitalization: TextCapitalization.words,
           obscureText: isPassword,
           maxLines: lines,
           decoration: const InputDecoration(
@@ -179,6 +181,7 @@ Widget formFieldText(String title, String field,
           height: 10,
         ),
         TextFormField(
+          textCapitalization: TextCapitalization.words,
           obscureText: isPassword,
           maxLines: lines,
           decoration: const InputDecoration(
@@ -650,8 +653,8 @@ void _performAction(BuildContext context, String title) async {
   String token = '';
   HttpClientRequest request;
 
-  client.badCertificateCallback =
-      ((X509Certificate cert, String host, int port) => true);
+  // client.badCertificateCallback =
+  //     ((X509Certificate cert, String host, int port) => true);
   if (title == "Update Profile") {
     String userToken = prefs.get("token").toString();
 
@@ -710,10 +713,10 @@ void _performAction(BuildContext context, String title) async {
        showAlert(context, successMessage, actionClass);
     }
   } else {
-    if (title == 'Login') {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
-    }
+    // if (title == 'Login') {
+    //   Navigator.push(
+    //       context, MaterialPageRoute(builder: (context) => const LoginPage()));
+    // }
     reply = await response.transform(utf8.decoder).join();
      showAlert(context, reply, '');
   }
@@ -737,8 +740,16 @@ void showAlert(BuildContext context, String message, var actionClass) {
                               builder: (context) => actionClass));
                     } else {
                       // This is the primary fix for the "loader on page" issue.
-                      Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); // Dismiss loading dialog
-                      Navigator.pop(context);
+                      try {
+                          Navigator.of(_keyLoader.currentContext!, rootNavigator: true).pop(); 
+                      } catch (e) {
+                          // Log the error or ignore it, as it likely means the dialog was already gone.
+                          print('Error dismissing loading dialog: $e'); 
+                      }
+                      // Then, dismiss the screen, using context.mounted check
+                      if (context.mounted) {
+                          Navigator.pop(context);
+                      }
                     }
                   },
                 ),
@@ -756,35 +767,41 @@ void _showTermsAndConditions(BuildContext context) {
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
             title: const Text('Terms and Conditions'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  const Text(
-                    "We are Just helping you to find your desire partner. \n It's your sole resposibilty to validate a profile. \n We are not responsible for any further conconsequences.",
-                    style: TextStyle(fontSize: 16.0),
+          content: SingleChildScrollView(
+            child: ListBody( // This ListBody holds ALL the content
+              children: <Widget>[
+                // 1. PDF Viewer (Correctly wrapped in SizedBox)
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6, 
+                  child: const PdfViewerDialogContent(
+                    pdfUrl: 'assets/terms.pdf'
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: <Widget>[
-                      Checkbox(
-                        value: dialogIsAccepted,
-                        onChanged: (bool? newValue) {
-                          setState(() {
-                            dialogIsAccepted = newValue!;
-                          });
-                        },
+                ),
+
+                const SizedBox(height: 20),
+                
+                // 2. Checkbox Row
+                Row(
+                  children: <Widget>[
+                    Checkbox(
+                      value: dialogIsAccepted,
+                      onChanged: (bool? newValue) {
+                        setState(() {
+                          dialogIsAccepted = newValue!;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'I have read and agree to the Terms and Conditions.',
+                        style: TextStyle(fontSize: 14.0),
                       ),
-                      const Expanded(
-                        child: Text(
-                          'I have read and agree to the Terms and Conditions.',
-                          style: TextStyle(fontSize: 14.0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
             actions: <Widget>[
               TextButton(
                 child: const Text('Decline'),
@@ -917,7 +934,6 @@ void _showOtpInputDialog(BuildContext context, String phoneNumber, String title)
 // 🔑 NEW: Function to initiate the OTP process
 void _handlePhoneVerification(BuildContext context, String title) async {
   final rawPhone;
-  print("Title: $title");
   dynamic actionClass = Signup(key:null, title: '');
   switch (title) {
     case "Update Profile": 

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/view/call_us.dart';
+import 'package:vadar_marriage_era/view/call_us.dart';
 import 'dart:convert';
-import 'package:vm_24/view/desired_partner.dart';
-import 'package:vm_24/view/profile_view.dart';
-import 'package:vm_24/view/payment.dart';
-import 'package:vm_24/view/notification.dart';
-import 'package:vm_24/widgets/modelActions.dart';
-import 'package:vm_24/view/constants.dart';
-import 'package:vm_24/widgets/image_dialog.dart';
+import 'package:vadar_marriage_era/view/desired_partner.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
+import 'package:vadar_marriage_era/view/payment.dart';
+import 'package:vadar_marriage_era/view/notification.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/view/constants.dart';
+import 'package:vadar_marriage_era/widgets/image_dialog.dart';
 
 class ShortlistedView extends StatefulWidget {
   ShortlistedView({super.key, this.title = ""});

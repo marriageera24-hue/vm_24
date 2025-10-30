@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:906363728709:android:ae94d00e6520afa14f042c",
+        "mobilesdk_app_id": "1:906363728709:android:43efb5f744db04d94f042c",
         "android_client_info": {
-          "package_name": "com.example.vm_24"
+          "package_name": "com.example.vadar_marriage_era"
         }
       },
       "oauth_client": [],

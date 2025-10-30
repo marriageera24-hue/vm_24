@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/view/call_us.dart';
-import 'package:vm_24/view/desired_partner.dart';
-import 'package:vm_24/view/profile_view.dart';
-import 'package:vm_24/view/payment.dart';
-import 'package:vm_24/view/shortlisted.dart';
-import 'package:vm_24/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/view/call_us.dart';
+import 'package:vadar_marriage_era/view/desired_partner.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
+import 'package:vadar_marriage_era/view/payment.dart';
+import 'package:vadar_marriage_era/view/shortlisted.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
 import 'dart:convert';
 
 class NotificationView extends StatefulWidget {

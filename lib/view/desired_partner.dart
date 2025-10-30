@@ -2,20 +2,20 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:vm_24/view/profile.dart';
-import 'package:vm_24/view/profile_view.dart';
-import 'package:vm_24/view/payment.dart';
-import 'package:vm_24/view/shortlisted.dart';
-import 'package:vm_24/view/notification.dart';
-import 'package:vm_24/widgets/formfields.dart';
-import 'package:vm_24/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/view/profile.dart';
+import 'package:vadar_marriage_era/view/profile_view.dart';
+import 'package:vadar_marriage_era/view/payment.dart';
+import 'package:vadar_marriage_era/view/shortlisted.dart';
+import 'package:vadar_marriage_era/view/notification.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
 import 'dart:convert';
-import 'package:vm_24/view/constants.dart';
-import 'package:vm_24/widgets/image_dialog.dart';
+import 'package:vadar_marriage_era/view/constants.dart';
+import 'package:vadar_marriage_era/widgets/image_dialog.dart';
 import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vm_24/app_config.dart';
-import 'package:vm_24/view/call_us.dart';
+import 'package:vadar_marriage_era/app_config.dart';
+import 'package:vadar_marriage_era/view/call_us.dart';
 
 class PartnerView extends StatefulWidget {
   PartnerView({super.key, this.title = ''});
@@ -631,7 +631,6 @@ class PartnerViewState extends State<PartnerView> {
         "order by": "id",
         "order": "DESC"
       };
-      print(data);
       url = "${config.apiUrl}/users/search";
       client.badCertificateCallback =
           ((X509Certificate cert, String host, int port) => true);

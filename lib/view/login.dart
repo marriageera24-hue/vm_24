@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,7 +36,7 @@ class _LoginState extends State<LoginPage> {
                   //Positioned(top: 40, child: _title()),
 
                   formLabel1(context, "signup"),
-                  formFieldTextLogin("Email/Mobile", "username"),
+                  formFieldTextLogin("Mobile", "username"),
                   formFieldTextLogin("Password", "password", isPassword: true),
                   submitButton(context, "Login"),
                   formLabel2(context, "forgotPass"),

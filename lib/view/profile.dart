@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/view/payment.dart';
-import 'package:vm_24/widgets/formfields.dart';
-import 'package:vm_24/widgets/modelActions.dart';
+import 'package:vadar_marriage_era/view/payment.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/modelActions.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
-import 'package:vm_24/widgets/image_dialog.dart';
+import 'package:vadar_marriage_era/widgets/image_dialog.dart';
 
 class 
 Profile extends StatefulWidget {

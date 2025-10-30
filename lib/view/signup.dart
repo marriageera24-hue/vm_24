@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vm_24/widgets/formfields.dart';
+import 'package:vadar_marriage_era/widgets/formfields.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key, required this.title});
